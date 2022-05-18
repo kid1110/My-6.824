@@ -261,7 +261,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.me = me
 
 	rf.State = Follower
-	rf.heartBeat = 200 * time.Millisecond
+	rf.heartBeat = 50 * time.Millisecond
 	rf.resetElectionTimer()
 
 	rf.currentTerm = 0

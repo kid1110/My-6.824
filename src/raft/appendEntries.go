@@ -20,12 +20,13 @@ func (rf *Raft) appendEntries(heartbeat bool) {
 			rf.resetElectionTimer()
 			continue
 		}
-		args := AppendEntriesArgs{
-			Term:     rf.currentTerm,
-			LeaderId: rf.me,
-			Entries:  make([]Entry, 0),
-		}
+
 		if heartbeat {
+			args := AppendEntriesArgs{
+				Term:     rf.currentTerm,
+				LeaderId: rf.me,
+				Entries:  make([]Entry, 0),
+			}
 			go rf.leaderSendEntries(peer, &args)
 		}
 	}
