@@ -29,3 +29,13 @@ func (l *Log) lastLog() *Entry {
 	return l.at(len(l.Entries) - 1)
 
 }
+func (l *Log) slice(idx int) []Entry {
+	return l.Entries[idx:]
+}
+func (l *Log) len() int {
+	return len(l.Entries)
+}
+
+func (l *Log) truncate(idx int) {
+	l.Entries = l.Entries[:idx]
+}

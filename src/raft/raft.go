@@ -20,6 +20,8 @@ package raft
 import (
 	//	"bytes"
 
+	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -196,13 +198,24 @@ func (rf *Raft) Snapshot(index int, snapshot []byte) {
 // the leader.
 //
 func (rf *Raft) Start(command interface{}) (int, int, bool) {
-	index := -1
-	term := -1
-	isLeader := true
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+	if rf.State != Leader {
+		return -1, rf.currentTerm, false
+	}
+	index := rf.log.lastLog().Index + 1
+	term := rf.currentTerm
 
-	// Your code here (2B).
+	log := Entry{
+		Command: command,
+		Index:   index,
+		Term:    term,
+	}
+	rf.log.append(log)
+	DPrintf("[server %v] term %v start %v", rf.me, term, log)
+	rf.appendEntries(false)
 
-	return index, term, isLeader
+	return index, term, true
 }
 
 //
@@ -286,5 +299,41 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	// start ticker goroutine to start elections
 	go rf.ticker()
 
+	go rf.applier()
+
 	return rf
+}
+func (rf *Raft) apply() {
+	rf.applyCond.Broadcast()
+	DPrintf("[server %v] rf.applyCond.Broadcast", rf.me)
+}
+func (rf *Raft) applier() {
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+
+	for !rf.killed() {
+		if rf.commitIndex > rf.lastApplied && rf.log.lastLog().Index > rf.lastApplied {
+			rf.lastApplied++
+			data := ApplyMsg{
+				CommandValid: true,
+				Command:      rf.log.at(rf.lastApplied).Command,
+				CommandIndex: rf.lastApplied,
+			}
+			DPrintf("[server %v] commit %d:%v", rf.me, rf.lastApplied, rf.commits())
+			rf.mu.Unlock()
+			rf.applyCh <- data
+			rf.mu.Lock()
+		} else {
+			rf.applyCond.Wait()
+			DPrintf("[server %v] rf.applyCond.Wait()", rf.me)
+		}
+	}
+
+}
+func (rf *Raft) commits() string {
+	data := []string{}
+	for i := 0; i < rf.lastApplied; i++ {
+		data = append(data, fmt.Sprintf("%4d", rf.log.at(i).Command))
+	}
+	return fmt.Sprintf(strings.Join(data, "|"))
 }

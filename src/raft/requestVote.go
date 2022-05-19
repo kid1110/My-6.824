@@ -19,6 +19,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	defer rf.mu.Unlock()
 	reply.VoteGrand = false
 	reply.Term = rf.currentTerm
+
 	if rf.currentTerm > args.Term {
 		return
 	}
