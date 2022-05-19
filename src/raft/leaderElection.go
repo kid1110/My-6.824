@@ -25,14 +25,15 @@ func (rf *Raft) setNewTerm(term int) {
 		rf.State = Follower
 		rf.currentTerm = term
 		rf.voteFor = -1
+		rf.persist()
 		DPrintf("[server %v] set new Term %v", rf.me, rf.currentTerm)
 	}
 }
 func (rf *Raft) startElection() {
 	rf.currentTerm++
 	rf.State = Candidate
-
 	rf.voteFor = rf.me
+	rf.persist()
 	rf.resetElectionTimer()
 	DPrintf("[server %v] start leader election term is %d", rf.me, rf.currentTerm)
 	lastLog := rf.log.lastLog()

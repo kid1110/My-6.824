@@ -32,6 +32,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		rf.voteFor = args.CandidateId
 		reply.VoteGrand = true
 		rf.resetElectionTimer()
+		rf.persist()
 		DPrintf("[server %v] term %v vote %v", rf.me, rf.currentTerm, args.CandidateId)
 	}
 

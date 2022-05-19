@@ -20,13 +20,16 @@ package raft
 import (
 	//	"bytes"
 
+	"bytes"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	//	"6.824/labgob"
+	"6.824/labgob"
 	"6.824/labrpc"
 )
 
@@ -103,12 +106,13 @@ type Raft struct {
 func (rf *Raft) persist() {
 	// Your code here (2C).
 	// Example:
-	// w := new(bytes.Buffer)
-	// e := labgob.NewEncoder(w)
-	// e.Encode(rf.xxx)
-	// e.Encode(rf.yyy)
-	// data := w.Bytes()
-	// rf.persister.SaveRaftState(data)
+	w := new(bytes.Buffer)
+	e := labgob.NewEncoder(w)
+	e.Encode(rf.currentTerm)
+	e.Encode(rf.voteFor)
+	e.Encode(rf.log)
+	data := w.Bytes()
+	rf.persister.SaveRaftState(data)
 }
 
 //
@@ -120,17 +124,19 @@ func (rf *Raft) readPersist(data []byte) {
 	}
 	// Your code here (2C).
 	// Example:
-	// r := bytes.NewBuffer(data)
-	// d := labgob.NewDecoder(r)
-	// var xxx
-	// var yyy
-	// if d.Decode(&xxx) != nil ||
-	//    d.Decode(&yyy) != nil {
-	//   error...
-	// } else {
-	//   rf.xxx = xxx
-	//   rf.yyy = yyy
-	// }
+	r := bytes.NewBuffer(data)
+	d := labgob.NewDecoder(r)
+	var currentTerm int
+	var voteFor int
+	var raftLog Log
+	if d.Decode(&currentTerm) != nil ||
+		d.Decode(&voteFor) != nil || d.Decode(&raftLog) != nil {
+		log.Fatal("fail to read persists")
+	} else {
+		rf.currentTerm = currentTerm
+		rf.voteFor = voteFor
+		rf.log = raftLog
+	}
 }
 
 //
@@ -212,7 +218,9 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 		Term:    term,
 	}
 	rf.log.append(log)
+
 	DPrintf("[server %v] term %v start %v", rf.me, term, log)
+	rf.persist()
 	rf.appendEntries(false)
 
 	return index, term, true

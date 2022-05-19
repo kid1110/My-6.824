@@ -176,10 +176,12 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	for idx, entry := range args.Entries {
 		if entry.Index <= rf.log.lastLog().Index && rf.log.at(entry.Index).Term != entry.Term {
 			rf.log.truncate(entry.Index)
+			rf.persist()
 		}
 
 		if entry.Index > rf.log.lastLog().Index {
 			rf.log.append(args.Entries[idx:]...)
+			rf.persist()
 			DPrintf("[server %d]: follower append [%v]", rf.me, args.Entries[idx:])
 			break
 
