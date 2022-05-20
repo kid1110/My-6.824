@@ -39,3 +39,6 @@ func (l *Log) len() int {
 func (l *Log) truncate(idx int) {
 	l.Entries = l.Entries[:idx]
 }
+func (l *Log) trim(idx int) {
+	l.Entries = append(l.Entries[:1], l.Entries[idx:]...)
+}
