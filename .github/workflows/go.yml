@@ -3,9 +3,7 @@ name: Go
 on:
   push:
     branches: 
-     -raft-2A
-  pull_request:
-    branches: [ main ]
+     - raft-2A
 
 jobs:
 
