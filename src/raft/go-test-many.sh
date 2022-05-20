@@ -1,5 +1,4 @@
-#!/bin/zsh
-#
+#!/bin/bash
 # Script for running `go test` a bunch of times, in parallel, storing the test
 # output as you go, and showing a nice status output telling you how you're
 # doing.
