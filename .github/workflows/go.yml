@@ -17,4 +17,4 @@ jobs:
         go-version: 1.18
 
     - name: Test
-      run: cd src/raft && go test --race -run 2A 
+      run: cd src/raft && ./test.sh
