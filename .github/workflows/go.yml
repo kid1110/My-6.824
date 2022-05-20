@@ -2,8 +2,7 @@ name: Go
 
 on:
   push:
-    branches: 
-     - raft-2A
+    branches: [ raft-2A ]
 
 jobs:
 
